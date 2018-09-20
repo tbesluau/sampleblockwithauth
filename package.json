@@ -1,0 +1,34 @@
+{
+  "name": "sampleblock",
+  "version": "0.0.1",
+  "description": "Sample Salesforce Marketing Cloud Content Builder Block",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tbesluau/sampleblock.git"
+  },
+  "author": "Thomas Besluau",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tbesluau/sampleblock/issues"
+  },
+  "homepage": "https://github.com/tbesluau/sampleblock#readme",
+  "dependencies": {
+    "@salesforce-ux/design-system": "^2.5.2",
+    "blocksdk": "^1.1",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "http-proxy-middleware": "^0.19.0",
+    "jwt-simple": "^0.5.2",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "webpack": "^3.10.0",
+    "webpack-css-loaders": "^1.0.0"
+  }
+}
