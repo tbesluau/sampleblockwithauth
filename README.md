@@ -1,4 +1,4 @@
-# sampleblock
+# Sample block with authentication
 Sample Salesforce Marketing Cloud Content Builder Block using the [blocksdk](https://github.com/salesforce-marketingcloud/blocksdk) and SSO OAuth.
 
 ## Deployment
