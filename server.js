@@ -8,10 +8,11 @@ var request = require('request');
 // wherever this is hosted needs to have those
 // environment variables set to the MC app values
 // given to you by the app center page
-var secret = process.env.APP_SIGNATURE;
+var authURL = process.env.AUTH_URL;
+var restURL = process.env.REST_URL;
 var clientId = process.env.CLIENT_ID;
 var clientSecret = process.env.CLIENT_SECRET;
-var appID = process.env.APP_ID;
+var redirectURL = process.env.REDIRECT_URL;
 
 
 var app = express();
@@ -47,7 +48,7 @@ app.use(express.static('dist'));
 app.use('/proxy', proxy({
 	logLevel: 'debug',
 	changeOrigin: true,
-	target: 'https://www.exacttargetapis.com/',
+	target: restURL,
 	onError: function (err, req, res) {console.log(err);},
 	protocolRewrite: 'https',
 	pathRewrite: {
@@ -67,39 +68,43 @@ app.use('/proxy', proxy({
 	}
 }));
 
-app.get('/appID', function (req, res) {
-	res.send(appID);
+app.get('/authInfo', function (req, res) {
+	res.send({
+		authURL: authURL,
+		redirectURL: redirectURL,
+		clientId: clientId
+	});
 });
 
-// MC Oath will post to whatever URL you specify as the login URL
-// in the app center when the uer opens the app. In our case /login
-// the posted jwt has a refreshToken that we can use to get
-// an access token. That access is used to authenticate MC API calls
-app.post('/login', function (req, res, next) {
-	var encodedJWT = req.body.jwt;
-	var decodedJWT = jwt.decode(encodedJWT, secret);
-	var restInfo = decodedJWT.request.rest;
+// MC Oauth will post to whatever URL you specify as the login URL
+// in the app center when the user opens the app. In our case /login
+// the posted code can be use to get an access token.
+// That access is used to authenticate MC API calls
+app.get('/login', function (req, res, next) {
+	var code = req.query.code;
+
 	// the call to the auth endpoint is done right away
 	// for demo purposes. In a prod app, you will want to
 	// separate that logic out and repeat this process
 	// everytime the access token expires
-	request.post(restInfo.authEndpoint, {form: {
-		clientId: clientId,
-		clientSecret: clientSecret,
-		refreshToken: restInfo.refreshToken,
-		accessType: 'offline'
+	request.post(authURL + '/v2/token', {form: {
+		client_id: clientId,
+		client_secret: clientSecret,
+		grant_type: "authorization_code",
+		redirect_uri: redirectURL,
+		code: code,
 	}}, function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 			var result = JSON.parse(body);
 			// storing the refresh token is useless in the demo
 			// but in a prod app it will be used next time we
 			// want to refresh the access token
-			req.session.refreshToken = result.refreshToken;
+			//req.session.refreshToken = result.refreshToken;
+
 			// the access token below can authenticate
 			// against the MC API
-			req.session.accessToken = result.accessToken;
+			req.session.accessToken = result.access_token;
 			req.session.save();
-			
 		}
 		// we redirect to the app homepage
 		res.redirect('/');

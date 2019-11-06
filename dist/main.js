@@ -72,10 +72,29 @@ __webpack_require__(1);
 var SDK = __webpack_require__(19);
 var sdk = new SDK();
 
-fetch('/appID').then(function (res) {
-	return res.text();
-}).then(function (appID) {
-	sdk.triggerAuth(appID);
+// triggerAuth2 override
+sdk.triggerAuth2 = function (authInfo) {
+	var iframe = document.createElement('IFRAME');
+	var scope = '';
+	if(Array.isArray(authInfo.scope)) {
+		scope = '&scope=' + authInfo.scope.join('%20');
+	}
+	iframe.src = authInfo.authURL + (authInfo.authURL.endsWith('/') ? '':'/') + 'v2/authorize?response_type=code&client_id=' + authInfo.clientId + '&redirect_uri=' + encodeURIComponent(authInfo.redirectURL) + scope;
+	iframe.style.width= '1px';
+	iframe.style.height = '1px';
+	iframe.style.position = 'absolute';
+	iframe.style.top = '0';
+	iframe.style.left = '0';
+	iframe.style.visibility = 'hidden';
+	iframe.className = 'authframe';
+	document.body.appendChild(iframe);
+};
+
+
+fetch('/authInfo').then(function (res) {
+	return res.json();
+}).then(function (response) {
+	sdk.triggerAuth2(response);
 });
 
 
