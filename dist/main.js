@@ -72,24 +72,6 @@ __webpack_require__(1);
 var SDK = __webpack_require__(19);
 var sdk = new SDK();
 
-// triggerAuth2 override
-sdk.triggerAuth2 = function (authInfo) {
-	var iframe = document.createElement('IFRAME');
-	var scope = '';
-	if(Array.isArray(authInfo.scope)) {
-		scope = '&scope=' + authInfo.scope.join('%20');
-	}
-	iframe.src = authInfo.authURL + (authInfo.authURL.endsWith('/') ? '':'/') + 'v2/authorize?response_type=code&client_id=' + authInfo.clientId + '&redirect_uri=' + encodeURIComponent(authInfo.redirectURL) + scope;
-	iframe.style.width= '1px';
-	iframe.style.height = '1px';
-	iframe.style.position = 'absolute';
-	iframe.style.top = '0';
-	iframe.style.left = '0';
-	iframe.style.visibility = 'hidden';
-	iframe.className = 'authframe';
-	document.body.appendChild(iframe);
-};
-
 
 fetch('/authInfo').then(function (res) {
 	return res.json();
@@ -814,7 +796,7 @@ var SDK = function (config, whitelistOverride, sslOverride) {
 
 SDK.prototype.execute = function execute (method, options) {
 	options = options || {};
-	
+
 	var self = this;
 	var payload = options.data;
 	var callback = options.success;
@@ -872,27 +854,27 @@ SDK.prototype.setBlockEditorWidth = function (value, cb) {
 
 SDK.prototype.setCentralData = function (dataObj, cb) {
 	this.execute('setCentralData', {
-		data: dataObj, 
+		data: dataObj,
 		success: cb
 	});
 };
 
 SDK.prototype.setContent = function (content, cb) {
 	this.execute('setContent', {
-		data: content, 
+		data: content,
 		success: cb});
 };
 
 SDK.prototype.setData = function (dataObj, cb) {
 	this.execute('setData', {
-		data: dataObj, 
+		data: dataObj,
 		success: cb
 	});
 };
 
 SDK.prototype.setSuperContent = function (content, cb) {
 	this.execute('setSuperContent', {
-		data: content, 
+		data: content,
 		success: cb
 	});
 };
@@ -900,7 +882,7 @@ SDK.prototype.setSuperContent = function (content, cb) {
 SDK.prototype.triggerAuth = function (appID) {
 	this.getUserData(function (userData) {
 		var stack = userData.stack;
-		if (stack.startsWith('qa')) {
+		if (stack.indexOf('qa') === 0) {
 			stack = stack.substring(3,5) + '.' + stack.substring(0,3);
 		}
 		var iframe = document.createElement('IFRAME');
@@ -910,9 +892,31 @@ SDK.prototype.triggerAuth = function (appID) {
 		iframe.style.position = 'absolute';
 		iframe.style.top = '0';
 		iframe.style.left = '0';
-		iframe.style.display = 'hidden';
+		iframe.style.visibility = 'hidden';
+		iframe.className = 'authframe';
 		document.body.appendChild(iframe);
 	});
+};
+
+SDK.prototype.triggerAuth2 = function (authInfo) {
+	var iframe = document.createElement('IFRAME');
+	var scope = '';
+	var state = '';
+	if(Array.isArray(authInfo.scope)) {
+		scope = '&scope=' + authInfo.scope.join('%20');
+	}
+	if(authInfo.state) {
+		state = '&state=' + authInfo.state;
+	}
+	iframe.src = authInfo.authURL + (authInfo.authURL.endsWith('/') ? '':'/') + 'v2/authorize?response_type=code&client_id=' + authInfo.clientId + '&redirect_uri=' + encodeURIComponent(authInfo.redirectURL) + scope + state;
+	iframe.style.width= '1px';
+	iframe.style.height = '1px';
+	iframe.style.position = 'absolute';
+	iframe.style.top = '0';
+	iframe.style.left = '0';
+	iframe.style.visibility = 'hidden';
+	iframe.className = 'authframe';
+	document.body.appendChild(iframe);
 };
 
 /* Internal Methods */
@@ -922,7 +926,7 @@ SDK.prototype._executePendingMessages = function _executePendingMessages () {
 
 	this._pendingMessages.forEach(function (thisMessage) {
 		self.execute(thisMessage.method, {
-			data: thisMessage.payload, 
+			data: thisMessage.payload,
 			success: thisMessage.callback
 		});
 	});
@@ -963,12 +967,13 @@ SDK.prototype._receiveMessage = function _receiveMessage (message) {
 // the custom block should verify it is being called from the marketing cloud
 SDK.prototype._validateOrigin = function _validateOrigin (origin) {
 	// Make sure to escape periods since these strings are used in a regular expression
-	var allowedDomains = this._whitelistOverride || ['marketingcloudapps\\.com', 'blocktester\\.herokuapp\\.com'];
+	var allowedDomains = this._whitelistOverride || ['exacttarget\\.com', 'marketingcloudapps\\.com', 'blocktester\\.herokuapp\\.com'];
 
 	for (var i = 0; i < allowedDomains.length; i++) {
 		// Makes the s optional in https
 		var optionalSsl = this._sslOverride ? '?' : '';
-		var whitelistRegex = new RegExp('^https' + optionalSsl + '://([a-zA-Z0-9-]+\\.)*' + allowedDomains[i] + '(:[0-9]+)?$', 'i');
+		var mcSubdomain = allowedDomains[i] === 'exacttarget\\.com' ? 'mc\\.' : '';
+		var whitelistRegex = new RegExp('^https' + optionalSsl + '://' + mcSubdomain + '([a-zA-Z0-9-]+\\.)*' + allowedDomains[i] + '(:[0-9]+)?$', 'i');
 
 		if (whitelistRegex.test(origin)) {
 			return true;
