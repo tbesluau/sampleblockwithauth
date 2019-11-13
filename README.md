@@ -15,10 +15,11 @@ One click deployment to heroku:
 
 ### Environment variables
 
-The node app needs the following env variables set:
+The node app needs the following env variables set, that you can get from your MC enhanced package API integration screen:
 
- * APP_ID - the app ID or installed package ID so it knows what SSO page to send to
- * APP_SIGNATURE - the app signature or JWT signing secret so it can decode the JWT passed by SSO
+ * AUTH_URL - the authentication endpoint for you inetgration
+ * REST_URL - the REST endpoint for your integration
+ * REDIRECT_URL - the redirect URL to be used by the MC after successfully authenticating someone
  * CLIENT_ID - the client id from the API integration so it can use the auth endpoing to get a token 
  * CLIENT_SECRET - the client secret from the API integration so it can use the auth endpoing to get a token 
 
