@@ -115,7 +115,7 @@ var getImages = function () {
 		var dom = '';
 		for (var key in data.items) {
 			var src = data.items[key].fileProperties.publishedURL;
-			dom += '<div style="display:inline-block;width:50px;border:1px solid white;height:50px"><img style="width:50px;max-height:50px;background-color:lightgray;" onclick="setContent(\'' + src + '\')" src="' + src + '"></img></div>';
+			dom += '<div style="display:inline-block;width:50px;border:1px solid white;height:50px"><img style="width:50px;height:50px;background-color:lightgray;" onclick="setContent(\'' + src + '\')" src="' + src + '"></img></div>';
 		}
 		document.getElementById('workspace').innerHTML = dom;
 	});
