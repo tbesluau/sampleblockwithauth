@@ -16,6 +16,7 @@ var redirectURL = process.env.REDIRECT_URL;
 
 
 var app = express();
+var tssd = '';
 
 // body parser for post
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -48,7 +49,7 @@ app.use(express.static('dist'));
 app.use('/proxy', proxy({
 	logLevel: 'debug',
 	changeOrigin: true,
-	target: restURL,
+	target: tssd || restURL,
 	onError: function (err, req, res) {console.log(err);},
 	protocolRewrite: 'https',
 	pathRewrite: {
@@ -82,12 +83,13 @@ app.get('/authInfo', function (req, res) {
 // That access is used to authenticate MC API calls
 app.get('/login', function (req, res, next) {
 	var code = req.query.code;
+	tssd = req.query.tssd;
 
 	// the call to the auth endpoint is done right away
 	// for demo purposes. In a prod app, you will want to
 	// separate that logic out and repeat this process
 	// everytime the access token expires
-	request.post(authURL + '/v2/token', {form: {
+	request.post(tssd || authURL + '/v2/token', {form: {
 		client_id: clientId,
 		client_secret: clientSecret,
 		grant_type: "authorization_code",
