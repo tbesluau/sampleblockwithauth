@@ -108,8 +108,6 @@ app.get('/login', function (req, res, next) {
 			req.session.accessToken = result.access_token;
 			req.session.save();
 		}
-		// we redirect to the app homepage
-		res.redirect('/');
 		next();
 	});
 });
